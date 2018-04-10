@@ -146,6 +146,50 @@ public:
 };
 
 template <class F>
+class Negative {
+public:
+    typedef Negative<F> Type;
+    Negative(const F& f)
+        : m_f(f)
+    {
+    }
+    double operator()(double x, double y, double z) const
+    {
+        return -m_f(x, y, z);
+    }
+    void print(void) const
+    {
+        cout << "-",
+        m_f.print();
+    }
+    F m_f;
+};
+
+template <class F1, class F2>
+class Extended_Power {
+public:
+    typedef Extended_Power<F1, F2> Type;
+    Extended_Power(const F1& f1, const F2& f2)
+        : m_f1(f1), m_f2(f2)
+    {
+    }
+    double operator()(double x, double y, double z) const
+    {
+        return pow(m_f1(x, y, z), m_f2(x, y, z));
+    }
+    void print(void) const
+    {
+        cout << "(",
+        m_f1.print();
+        cout << "^";
+        m_f2.print();
+        cout << ")";
+    }
+    F1 m_f1;
+    F2 m_f2;
+};
+
+template <class F>
 class Power {
 public:
     typedef Power<F> Type;
@@ -160,7 +204,7 @@ public:
     void print(void) const
     {
         cout << "(",
-        m_f.print();
+            m_f.print();
         cout << "^" << m_n;
         cout << ")";
     }
@@ -210,6 +254,27 @@ public:
         cout << ")";
     }
     double m_base, m_factor;
+    F m_f;
+};
+
+template <class F>
+class Absa {
+public:
+    typedef Absa<F> Type;
+    Absa(const F& f)
+        : m_f(f)
+    {
+    }
+    double operator()(double x, double y, double z) const
+    {
+        return abs(m_f(x, y, z));
+    }
+    void print(void) const
+    {
+        cout << "abs(";
+        m_f.print();
+        cout << ")";
+    }
     F m_f;
 };
 
@@ -385,6 +450,36 @@ public:
 // helpers
 
 template <class F1, class F2>
+Extended_Power<F1, F2> operator^(const F1& f1, const F2& f2)
+{
+    return Extended_Power<F1, F2>(f1, f2);
+}
+
+template <class F>
+typename std::enable_if<!std::is_arithmetic<F>::value, Exponent<F>>::type operator^(double value, const F& f)
+{
+    return Exponent<F>(value, f);
+}
+
+template <class F>
+typename std::enable_if<!std::is_arithmetic<F>::value, Power<F>>::type operator^(const F& f, double value)
+{
+    return Power<F>(f, value);
+}
+
+template <class F>
+typename std::enable_if<!std::is_arithmetic<F>::value, Exponent<F>>::type operator^(int value, const F& f)
+{
+    return Exponent<F>(value, f);
+}
+
+template <class F>
+typename std::enable_if<!std::is_arithmetic<F>::value, Power<F>>::type operator^(const F& f, int value)
+{
+    return Power<F>(f, value);
+}
+
+template <class F1, class F2>
 Add<F1, F2> operator+(const F1& f1, const F2& f2)
 {
     return Add<F1, F2>(f1, f2);
@@ -418,6 +513,12 @@ template <class F1, class F2>
 Subtract<F1, F2> operator-(const F1& f1, const F2& f2)
 {
     return Subtract<F1, F2>(f1, f2);
+}
+
+template <class F>
+typename std::enable_if<!std::is_arithmetic<F>::value, Negative<F>>::type operator-(const F& f)
+{
+    return Negative<F>(f);
 }
 
 template <class F>
@@ -613,6 +714,17 @@ Cotangent<F> Ctg(const F& f)
 inline double Ctg(double x)
 {
     return 1 / tan(x);
+}
+
+template <class F>
+Absa<F> Abs(const F& f)
+{
+    return Absa<F>(f);
+}
+
+inline double Abs(double x)
+{
+    return abs(x);
 }
 
 template <class F>
